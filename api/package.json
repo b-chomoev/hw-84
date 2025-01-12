@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "tsc writeFile.ts",
+    "dev": "nodemon index.ts",
+    "seed": "ts-node fixtures.ts"
   },
   "keywords": [],
   "author": "",
