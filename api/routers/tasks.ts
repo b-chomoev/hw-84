@@ -63,30 +63,31 @@ tasksRouter.put('/:id', auth, async (req, res, next) => {
 
 tasksRouter.delete('/:id', auth, async (req, res, next) => {
     const id = req.params.id;
+    let expressReq = req as RequestWithUser;
+    const user = expressReq.user;
+    const task = await Task.findById(id);
 
     if (!id) {
         res.status(400).send({error: 'Id must be present in the request'});
         return;
     }
 
+    if (!task) {
+        res.status(404).send({error: 'Task not found'});
+        return;
+    }
+
+    if (user._id.toString() !== task.user.toString()) {
+        res.status(403).send({error: 'You can delete only your tasks. You are not authorized to delete this task'});
+        return;
+    }
+
     try {
-        let expressReq = req as RequestWithUser;
-        const user = expressReq.user;
+        const deletedTask = await Task.findByIdAndDelete(id);
 
-        const task = await Task.findById(id);
+        if (!deletedTask) res.status(404).send({error: 'Task not found'});
 
-        if (!user) {
-            res.status(404).send({error: 'User not found'});
-            return;
-        }
-
-        if (!task) {
-            res.status(404).send({error: 'Task not found'});
-            return;
-        }
-
-        await Task.findByIdAndDelete(id);
-        res.send({message: 'Task is deleted successfully'});
+        res.send({message: 'Task is deleted successfully', deletedTask});
     } catch (error) {
         next(error);
     }
