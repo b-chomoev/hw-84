@@ -36,9 +36,16 @@ tasksRouter.get('/', auth,async (req, res, next) => {
 tasksRouter.put('/:id', auth, async (req, res, next) => {
     const id = req.params.id;
     const task: TaskFields = req.body;
+    let expressReq = req as RequestWithUser;
+    const user = expressReq.user;
 
     if (!id) {
         res.status(400).send({error: 'Id must be present in the request'});
+        return;
+    }
+
+    if (user._id.toString() !== task.user.toString()) {
+        res.status(403).send({error: 'You can update only your tasks'});
         return;
     }
 
