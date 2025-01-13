@@ -17,7 +17,19 @@ tasksRouter.post('/', auth, async (req, res, next) => {
         const user = expressReq.user;
 
         await newTask.save();
-        res.send({message: "New task is created successfully", newTask, user: user});
+        res.send({message: "New task is created successfully", newTask});
+    } catch (error) {
+        next(error);
+    }
+});
+
+tasksRouter.get('/', auth,async (req, res, next) => {
+    try {
+        let expressReq = req as RequestWithUser;
+        const user = expressReq.user;
+
+        const tasks = await Task.find({user: user._id}).select('-__v');
+        res.send(tasks);
     } catch (error) {
         next(error);
     }
