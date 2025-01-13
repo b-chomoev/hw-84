@@ -18,8 +18,7 @@ const TaskSchema = new Schema({
     },
     status: {
         type: String,
-        enum: ['todo', 'in progress', 'done'],
-        default: 'todo',
+        enum: ['new', 'in_progress', 'complete'],
     }
 });
 
