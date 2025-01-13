@@ -3,3 +3,10 @@ export interface UserFields {
     password: string;
     token: string;
 }
+
+export interface TaskFields {
+    user: string;
+    title: string;
+    description: string;
+    completed: string;
+}

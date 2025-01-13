@@ -1,6 +1,7 @@
 import express from "express";
 import auth, {RequestWithUser} from "../middleware/auth";
 import Task from "../models/Task";
+import {TaskFields} from "../types";
 
 const tasksRouter = express.Router();
 
@@ -12,9 +13,6 @@ tasksRouter.post('/', auth, async (req, res, next) => {
             description: req.body.description,
             status: req.body.status,
         })
-
-        let expressReq = req as RequestWithUser;
-        const user = expressReq.user;
 
         await newTask.save();
         res.send({message: "New task is created successfully", newTask});
@@ -30,6 +28,58 @@ tasksRouter.get('/', auth,async (req, res, next) => {
 
         const tasks = await Task.find({user: user._id}).select('-__v');
         res.send(tasks);
+    } catch (error) {
+        next(error);
+    }
+});
+
+tasksRouter.put('/:id', auth, async (req, res, next) => {
+    const id = req.params.id;
+    const task: TaskFields = req.body;
+
+    if (!id) {
+        res.status(400).send({error: 'Id must be present in the request'});
+        return;
+    }
+
+    try {
+        const updatedTask = await Task.findByIdAndUpdate(id, task).setOptions({new: true, overwrite: true});
+
+        if (updatedTask) {
+            res.send({message: 'Task is updated successfully', updatedTask});
+            return;
+        }
+    } catch (error) {
+        next(error);
+    }
+});
+
+tasksRouter.delete('/:id', auth, async (req, res, next) => {
+    const id = req.params.id;
+
+    if (!id) {
+        res.status(400).send({error: 'Id must be present in the request'});
+        return;
+    }
+
+    try {
+        let expressReq = req as RequestWithUser;
+        const user = expressReq.user;
+
+        const task = await Task.findById(id);
+
+        if (!user) {
+            res.status(404).send({error: 'User not found'});
+            return;
+        }
+
+        if (!task) {
+            res.status(404).send({error: 'Task not found'});
+            return;
+        }
+
+        await Task.findByIdAndDelete(id);
+        res.send({message: 'Task is deleted successfully'});
     } catch (error) {
         next(error);
     }
