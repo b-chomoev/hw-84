@@ -1,7 +1,6 @@
 import express from "express";
 import auth, {RequestWithUser} from "../middleware/auth";
 import Task from "../models/Task";
-import {TaskFields} from "../types";
 import {Error} from "mongoose";
 
 const tasksRouter = express.Router();
@@ -108,7 +107,7 @@ tasksRouter.patch('/:id', auth, async (req, res, next) => {
 //     const user = expressReq.user;
 //
 //     if (!id) {
-//         res.status(400).send({error: 'Id must be present in the request'});
+//         res.status(400).send({error: 'ID must be present in the request'});
 //         return;
 //     }
 //
