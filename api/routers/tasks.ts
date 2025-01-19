@@ -27,6 +27,7 @@ tasksRouter.post('/', auth, async (req, res, next) => {
             res.status(400).send(e);
             return;
         }
+        next(e);
     }
 });
 
@@ -42,33 +43,63 @@ tasksRouter.get('/', auth,async (req, res, next) => {
     }
 });
 
-tasksRouter.put('/:id', auth, async (req, res, next) => {
-    const id = req.params.id;
-    const task: TaskFields = req.body;
+tasksRouter.patch('/:id', auth, async (req, res, next) => {
     let expressReq = req as RequestWithUser;
-    const user = expressReq.user;
-
-    if (!id) {
-        res.status(400).send({error: 'Id must be present in the request'});
-        return;
-    }
-
-    if (user._id.toString() !== task.user.toString()) {
-        res.status(403).send({error: 'You can update only your tasks'});
-        return;
-    }
+    const user = expressReq.user._id;
 
     try {
-        const updatedTask = await Task.findByIdAndUpdate(id, task).setOptions({new: true, overwrite: true});
+        const task = await Task.findOne({_id: req.params.id, user: user});
 
-        if (updatedTask) {
-            res.send({message: 'Task is updated successfully', updatedTask});
+        if (!task) {
+            res.status(404).send({error: 'Task not found or access denied'});
             return;
         }
-    } catch (error) {
-        next(error);
+
+        if(req.body.user) delete req.body.user;
+
+        const updateTask = await Task.findOneAndUpdate(
+            {_id: req.params.id, user: user},
+            {$set: req.body},
+            {new: true, runValidators: true}
+        );
+
+        res.send(updateTask);
+    } catch (e) {
+        if (e instanceof Error.ValidationError) {
+            res.status(400).send(e);
+            return;
+        }
+        next(e);
     }
 });
+
+// tasksRouter.put('/:id', auth, async (req, res, next) => {
+//     const id = req.params.id;
+//     const task: TaskFields = req.body;
+//     let expressReq = req as RequestWithUser;
+//     const user = expressReq.user;
+//
+//     if (!id) {
+//         res.status(400).send({error: 'Id must be present in the request'});
+//         return;
+//     }
+//
+//     if (user._id.toString() !== task.user.toString()) {
+//         res.status(403).send({error: 'You can update only your tasks'});
+//         return;
+//     }
+//
+//     try {
+//         const updatedTask = await Task.findByIdAndUpdate(id, task).setOptions({new: true, overwrite: true});
+//
+//         if (updatedTask) {
+//             res.send({message: 'Task is updated successfully', updatedTask});
+//             return;
+//         }
+//     } catch (error) {
+//         next(error);
+//     }
+// });
 
 tasksRouter.delete('/:id', auth, async (req, res, next) => {
     const id = req.params.id;
