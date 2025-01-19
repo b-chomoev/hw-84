@@ -6,12 +6,17 @@ import {TaskFields} from "../types";
 const tasksRouter = express.Router();
 
 tasksRouter.post('/', auth, async (req, res, next) => {
+    let expressReq = req as RequestWithUser;
+    const user = expressReq.user._id;
+
+    const {title, description, status} = req.body;
+
     try {
         const newTask = new Task({
-            user: req.body.user,
-            title: req.body.title,
-            description: req.body.description,
-            status: req.body.status,
+            user: user,
+            title: title,
+            description: description,
+            status: status,
         })
 
         await newTask.save();
@@ -22,10 +27,10 @@ tasksRouter.post('/', auth, async (req, res, next) => {
 });
 
 tasksRouter.get('/', auth,async (req, res, next) => {
-    try {
-        let expressReq = req as RequestWithUser;
-        const user = expressReq.user;
+    let expressReq = req as RequestWithUser;
+    const user = expressReq.user;
 
+    try {
         const tasks = await Task.find({user: user._id}).select('-__v');
         res.send(tasks);
     } catch (error) {
