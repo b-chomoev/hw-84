@@ -2,6 +2,7 @@ import express from "express";
 import auth, {RequestWithUser} from "../middleware/auth";
 import Task from "../models/Task";
 import {TaskFields} from "../types";
+import {Error} from "mongoose";
 
 const tasksRouter = express.Router();
 
@@ -17,12 +18,15 @@ tasksRouter.post('/', auth, async (req, res, next) => {
             title: title,
             description: description,
             status: status,
-        })
+        });
 
         await newTask.save();
         res.send({message: "New task is created successfully", newTask});
-    } catch (error) {
-        next(error);
+    } catch (e) {
+        if (e instanceof Error.ValidationError) {
+            res.status(400).send(e);
+            return;
+        }
     }
 });
 
