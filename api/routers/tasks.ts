@@ -74,6 +74,34 @@ tasksRouter.patch('/:id', auth, async (req, res, next) => {
 });
 
 // tasksRouter.put('/:id', auth, async (req, res, next) => {
+//     let expressReq = req as RequestWithUser;
+//     const user = expressReq.user._id;
+//
+//     try {
+//         const task = await Task.findOne({_id: req.params.id, user: user});
+//
+//         if (!task) {
+//             res.status(404).send({error: 'Task not found or access denied'});
+//             return;
+//         }
+//
+//         const updateTask = await Task.findOneAndReplace(
+//             {_id: req.params.id, user: user},
+//             {user: task.user, title: req.body.title, description: req.body.description, status: req.body.status},
+//             {new: true, runValidators: true}
+//         );
+//
+//         res.send(updateTask);
+//     } catch (e) {
+//         if (e instanceof Error.ValidationError) {
+//             res.status(400).send(e);
+//             return;
+//         }
+//         next(e);
+//     }
+// });
+
+// tasksRouter.put('/:id', auth, async (req, res, next) => {
 //     const id = req.params.id;
 //     const task: TaskFields = req.body;
 //     let expressReq = req as RequestWithUser;
@@ -90,7 +118,7 @@ tasksRouter.patch('/:id', auth, async (req, res, next) => {
 //     }
 //
 //     try {
-//         const updatedTask = await Task.findByIdAndUpdate(id, task).setOptions({new: true, overwrite: true});
+//         const updatedTask = await Task.findOneAndReplace(id, task);
 //
 //         if (updatedTask) {
 //             res.send({message: 'Task is updated successfully', updatedTask});
